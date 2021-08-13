@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cee92eeb-a0df-4591-a6eb-594a5b95666a" >
+		<http:listener-connection host="localhost" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="00cc7f27-acc7-4652-8f32-e76791d746f8" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Platform2021#!" database="school" />
+	</db:config>
+	<flow name="database_personFlow" doc:id="0dfa458b-c697-4d93-a2f3-fb72ac805b77" >
+		<http:listener doc:name="Listener" doc:id="60318fa6-f97f-42fc-87b4-0f7de18db73d" config-ref="HTTP_Listener_config" path="/person"/>
+		<logger level="INFO" doc:name="Logger" doc:id="faa48f26-587e-4e2b-a5a8-85706f2ffa8a" message="person record is logging." />
+		<set-variable value="#[attributes.queryParams.personId]" doc:name="Person" doc:id="05aeec1e-24a4-4bb5-a8d9-003a5dbcffbc" variableName="personId"/>
+		<db:select doc:name="Select" doc:id="363dd8d6-516c-4439-8aa5-7d0e0ad4a3a0" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * From person where PersonId=:person]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'person':vars.personId}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3eacbabb-4eaa-4f5e-8b76-16d916a81d93" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
